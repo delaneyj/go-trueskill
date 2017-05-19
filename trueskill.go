@@ -95,6 +95,24 @@ func (ts Config) MatchQuality(players Players) float64 {
 	return calculate2PlayerMatchQuality(ts, players[0], players[1])
 }
 
+// WinProbability returns percentage chance for team A to beat team B
+// Based on code from https://github.com/sublee/trueskill/issues/1
+func (ts Config) WinProbability(a, b Players) float64 {
+	var deltaMu, sumSigma float64
+	for _, x := range a {
+		deltaMu += x.Mu()
+		sumSigma += math.Pow(x.Sigma(), 2)
+	}
+	for _, x := range b {
+		deltaMu -= x.Mu()
+		sumSigma += math.Pow(x.Sigma(), 2)
+	}
+
+	playerCount := float64(len(a) + len(b))
+	denominator := math.Sqrt(playerCount*(ts.Beta*ts.Beta) + sumSigma)
+	return gaussian.NormCdf(deltaMu / denominator)
+}
+
 // NewDefaultPlayer returns a new player with the mu and sigma from the game
 // configuration.
 func (ts Config) NewDefaultPlayer() Player {

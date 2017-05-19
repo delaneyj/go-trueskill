@@ -232,13 +232,37 @@ func TestTrueSkill_MatchQuality_HeadToHead(t *testing.T) {
 
 	matchQuality = matchQuality * 100
 	if !mathextra.Float64AlmostEq(matchQuality, wantMatchQuality, 1e-1) {
-		t.Errorf("Probability == %.1f, want %.1f", matchQuality, wantMatchQuality)
+		t.Errorf("Quality == %.1f, want %.1f", matchQuality, wantMatchQuality)
 	}
 
 	players = append(players, ts.NewDefaultPlayer())
 	matchQuality = ts.MatchQuality(players)
 	if matchQuality != -1 {
 		t.Errorf("bad match quality for >2 players; got %v, want %v", matchQuality, -1)
+	}
+}
+
+func TestWinProbability(t *testing.T) {
+	ts, err := NewDefault(0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	teamA := Players{ts.NewDefaultPlayer(), ts.NewDefaultPlayer()}
+	teamB := Players{ts.NewDefaultPlayer()}
+
+	winProbability := ts.WinProbability(teamA, teamB)
+
+	wantProbability := 0.9
+	if !mathextra.Float64AlmostEq(winProbability, wantProbability, 1e-1) {
+		t.Errorf("Probability == %.1f, want %.1f", winProbability, wantProbability)
+	}
+
+	teamB = append(teamB, ts.NewDefaultPlayer())
+	winProbability = ts.WinProbability(teamA, teamB)
+	wantProbability = 0.5
+	if !mathextra.Float64AlmostEq(winProbability, wantProbability, 1e-1) {
+		t.Errorf("Probability == %.1f, want %.1f", winProbability, wantProbability)
 	}
 }
 
